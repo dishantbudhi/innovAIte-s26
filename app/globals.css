@@ -1,4 +1,4 @@
 @import "tailwindcss";
 
-/* TODO: Dark theme CSS custom properties */
+@custom-variant dark (&:where(.dark, .dark *));
 

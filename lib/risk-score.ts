@@ -31,6 +31,10 @@ export function computeCompoundRiskScore(
     scores: DomainScores,
     eventCategories: string[]
 ): number {
+    if (!eventCategories || eventCategories.length === 0) {
+        throw new Error("At least one event category is required to compute risk score");
+    }
+
     // Determine weights. Average all category weights if multiple provided.
     // Spec §11: "Determine weight vector (average if multiple categories)"
     const normalizedCats = eventCategories.map(c => c.toLowerCase());

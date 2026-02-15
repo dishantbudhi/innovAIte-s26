@@ -68,10 +68,8 @@ async function loadJSON<T>(filename: string): Promise<T> {
         const data = await fs.readFile(filePath, "utf-8");
         return JSON.parse(data) as T;
     } catch (error) {
-        console.error(`Error loading ${filename}:`, error);
-        // Return empty object/array as fallback to prevent crash?
-        // Start with empty object cast
-        return {} as T;
+        const message = error instanceof Error ? error.message : String(error);
+        throw new Error(`Failed to load data file "${filename}": ${message}`);
     }
 }
 

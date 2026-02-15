@@ -31,12 +31,30 @@ export function computeCompoundRiskScore(
     scores: DomainScores,
     eventCategories: string[]
 ): number {
-    // Determine weights. Use the first category as primary.
-    // Spec says: "Determine category weights based on the event type".
-    // If no match found, default to equal weights or 'geopolitical' as fallback?
-    // Let's use 'geopolitical' as fallback or equal weights if empty.
-    const primaryCategory = eventCategories[0]?.toLowerCase() || "geopolitical";
-    const weights = CATEGORY_WEIGHTS[primaryCategory] || CATEGORY_WEIGHTS["geopolitical"];
+    // Determine weights. Average all category weights if multiple provided.
+    // Spec §11: "Determine weight vector (average if multiple categories)"
+    const normalizedCats = eventCategories.map(c => c.toLowerCase());
+    const weightsSum: DomainScores = { geopolitics: 0, economy: 0, food: 0, infrastructure: 0, civilian: 0 };
+    
+    for (const cat of normalizedCats) {
+        const catWeights = CATEGORY_WEIGHTS[cat];
+        if (catWeights) {
+            weightsSum.geopolitics += catWeights.geopolitics;
+            weightsSum.economy += catWeights.economy;
+            weightsSum.food += catWeights.food;
+            weightsSum.infrastructure += catWeights.infrastructure;
+            weightsSum.civilian += catWeights.civilian;
+        }
+    }
+    
+    const count = normalizedCats.length || 1;
+    const weights: DomainScores = {
+        geopolitics: weightsSum.geopolitics / count,
+        economy: weightsSum.economy / count,
+        food: weightsSum.food / count,
+        infrastructure: weightsSum.infrastructure / count,
+        civilian: weightsSum.civilian / count,
+    };
 
     // Calculate weighted average (on 1-10 scale)
     let weightedSum = 0;

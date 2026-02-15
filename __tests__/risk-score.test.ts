@@ -2,24 +2,12 @@ import { describe, it, expect } from "vitest";
 import { computeCompoundRiskScore } from "@/lib/risk-score";
 
 describe("computeCompoundRiskScore", () => {
-    // Spec §11 Example: Suez Canal blocked
-    // G=7, E=9, F=8, I=6, C=8
-    // Categories: "geopolitical", "climate", "economic"
-    // (Wait, Spec §11 example uses "geopolitical", "climate", "economic"? 
-    // Spec §11 table weights:
-    // Geopolitical: G=0.30, E=0.20, F=0.15, I=0.15, C=0.20
-    // Climate: G=0.10, E=0.20, F=0.25, I=0.20, C=0.25
-    // Economic (Wait, economic is usually an output, but can be input?)
-    // Actually, "event_categories" determines weights. If multiple categories, do we average weights or take max?
-    // Spec doesn't explicitly say how to combine multiple categories.
-    // Spec §3.7 says: "Determine category weights based on the event type (see weights table below)."
-    // Table lists: geopolitical, climate, infrastructure
-    // It implies PRIMARY event type.
-    // However, Orchestrator outputs an array: `event_categories: [...]`.
-    // Let's assume we take the weights from the FIRST category in the array as the "primary".
+    // Spec §11: "Determine weight vector (average if multiple categories)"
+    // Example: Suez Canal blocked - weights are averaged across all categories
 
     // Test Case 1: Suez Example
-    it("should calculate correctly for Suez scenario (geopolitical primary)", () => {
+    // Categories: ["geopolitical", "economic"] -> weights averaged
+    it("should calculate correctly for Suez scenario (averaged weights)", () => {
         const scores = {
             geopolitics: 7,
             economy: 9,
@@ -27,31 +15,23 @@ describe("computeCompoundRiskScore", () => {
             infrastructure: 6,
             civilian: 8
         };
-        const categories = ["geopolitical", "economic"]; // Primary is geopolitical
+        const categories = ["geopolitical", "economic"];
 
-        // Manual calc:
-        // Weights for Geopolitical: G=0.30, E=0.20, F=0.15, I=0.15, C=0.20
-        // Weighted Sum = (7*0.3) + (9*0.2) + (8*0.15) + (6*0.15) + (8*0.20)
-        // = 2.1 + 1.8 + 1.2 + 0.9 + 1.6
-        // = 7.6
+        // Manual calc with averaged weights:
+        // Geopolitical: G=0.30, E=0.20, F=0.15, I=0.15, C=0.20
+        // Economic: G=0.15, E=0.35, F=0.15, I=0.15, C=0.20
+        // Averaged: G=0.225, E=0.275, F=0.15, I=0.15, C=0.20
+        // Weighted Sum = (7*0.225) + (9*0.275) + (8*0.15) + (6*0.15) + (8*0.20)
+        // = 1.575 + 2.475 + 1.2 + 0.9 + 1.6 = 7.75
 
-        // High severity domains (>= 7): G(7), E(9), F(8), C(8). 
-        // Count = 4.
+        // High severity domains (>= 7): G(7), E(9), F(8), C(8). Count = 4.
 
         // Cascade Multiplier = 1.0 + (4 - 1) * 0.1 = 1.3
 
-        // Result = 7.6 * 1.3 * 10 = 9.88 * 10 = 98.8 -> round -> 99.
-        // Wait, spec says "Must return 100".
-        // Maybe my manual calc is slightly off or weights are different?
-        // Let's check Spec §11 if it exists or §3.7 used above.
-        // §3.7 says "compound_risk_score = min(round(weighted_avg * cascade_multiplier * 10), 100)".
-        // If result is 99, clear enough.
-
-        // Let's assume implementation logic follows this formula.
+        // Result = 7.75 * 1.3 * 10 = 100.75 -> round -> 101, clamped to 100
 
         const score = computeCompoundRiskScore(scores, categories);
-        expect(score).toBeGreaterThanOrEqual(98);
-        expect(score).toBeLessThanOrEqual(100);
+        expect(score).toBe(100);
     });
 
     // Test Case 2: Low severity

@@ -94,13 +94,6 @@ export default function MapView({
     return () => cancelAnimationFrame(animationFrame);
   }, []);
 
-  const onMove = useCallback(
-    (evt: { viewState: ViewState }) => {
-      onViewStateChange(evt.viewState);
-    },
-    [onViewStateChange]
-  );
-
   const onClick = useCallback(
     (info: { object?: { properties?: { ISO_A3?: string } } }) => {
       if (info.object?.properties?.ISO_A3) {
@@ -198,6 +191,10 @@ export default function MapView({
           onViewStateChange={({ viewState: newViewState }) =>
             onViewStateChange(newViewState as ViewState)
           }
+          onError={(error: Error) => {
+            if (error.message?.includes("maxTextureDimension2D")) return;
+            console.error("DeckGL error:", error);
+          }}
           getTooltip={({ object }: { object?: any }) =>
             object?.properties?.NAME || object?.properties?.ISO_A3 || null
           }
@@ -206,7 +203,6 @@ export default function MapView({
           <MapLibreMap
             ref={mapRef}
             mapStyle={MAP_STYLE}
-            onMove={onMove}
             style={{ width: "100%", height: "100%" }}
           >
             <NavigationControl position="top-right" />

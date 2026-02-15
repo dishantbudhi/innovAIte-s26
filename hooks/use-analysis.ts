@@ -130,13 +130,14 @@ export function useAnalysis(): UseAnalysisReturn {
         for (const line of lines) {
           if (line.startsWith("event: ")) {
             currentEvent = line.slice(7);
-          } else if (line.startsWith("data: ") && currentEvent) {
+          } else if (line.startsWith("data: ")) {
+            const eventName = currentEvent || "message";
             currentData = line.slice(6);
             
             try {
               const data = JSON.parse(currentData);
               
-              switch (currentEvent) {
+              switch (eventName) {
                 case "orchestrator": {
                   setOrchestratorOutput(data);
                   setPipelineStatus("analyzing");
@@ -237,6 +238,20 @@ export function useAnalysis(): UseAnalysisReturn {
             
             currentEvent = "";
             currentData = "";
+          }
+        }
+      }
+
+      if (buffer.trim()) {
+        if (buffer.startsWith("event: ")) {
+          currentEvent = buffer.slice(7);
+        } else if (buffer.startsWith("data: ")) {
+          const eventName = currentEvent || "message";
+          currentData = buffer.slice(6);
+          try {
+            JSON.parse(currentData);
+          } catch {
+            console.error("Failed to parse final SSE data:", currentData);
           }
         }
       }

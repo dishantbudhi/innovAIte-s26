@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "CryoNexus",
+  title: "Vantage",
   description: "Multi-Agent Catastrophic Risk Simulation Platform",
 };
 

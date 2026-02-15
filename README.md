@@ -1,4 +1,4 @@
-# CryoNexus
+# Vantage
 
 Multi-Agent Catastrophic Risk Simulation Platform
 

@@ -71,9 +71,9 @@ describe("globals.css — Dark Theme Tokens", () => {
 // ── Layout Component Tests ────────────────────────────────────────────
 
 describe("RootLayout — app/layout.tsx", () => {
-    it("exports metadata with title 'CryoNexus'", () => {
+    it("exports metadata with title 'Vantage'", () => {
         expect(metadata).toBeDefined();
-        expect(metadata.title).toBe("CryoNexus");
+        expect(metadata.title).toBe("Vantage");
     });
 
     it("exports metadata with a description", () => {

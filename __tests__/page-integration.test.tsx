@@ -168,9 +168,9 @@ describe("Page Composition — Integration Tests", () => {
 
   // ── Layout Tests ────────────────────────────────────────────────────
 
-  it("renders the CryoNexus header", () => {
+  it("renders the Vantage header", () => {
     render(<Home />);
-    expect(screen.getByText("CryoNexus")).toBeInTheDocument();
+    expect(screen.getByText("Vantage")).toBeInTheDocument();
   });
 
   it("renders risk score and time horizon badges with dashes when idle", () => {

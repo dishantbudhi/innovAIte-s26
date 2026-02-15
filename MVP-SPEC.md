@@ -1,4 +1,4 @@
-# CryoNexus — MVP Specification
+# Vantage — MVP Specification
 
 ## 0. Preamble
 
@@ -98,7 +98,7 @@ flowchart LR
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
-│  CryoNexus                          Risk Score: ██ 73    Immediate  │
+│  Vantage                          Risk Score: ██ 73    Immediate  │
 ├───────────────────────────────────────────┬──────────────────────────┤
 │                                           │ ┌──────────────────────┐ │
 │                                           │ │ Scenario Input       │ │
@@ -116,7 +116,7 @@ flowchart LR
 ### Project File Tree
 
 ```
-cryonexus/
+vantage/
 ├── app/
 │   ├── layout.tsx                 # Root layout: dark theme, Inter font
 │   ├── page.tsx                   # Main page: 70/30 map + sidebar grid
@@ -536,7 +536,7 @@ export const minimax = createOpenAICompatible({
 **Model:** GPT-5.2 via `openai("gpt-5.2")` | **Temperature:** 0.2 | **Max tokens:** 1,500
 
 ```text
-You are the Orchestrator for CryoNexus, a catastrophic risk simulation platform. Your job
+You are the Orchestrator for Vantage, a catastrophic risk simulation platform. Your job
 is to parse a user's natural-language scenario into a structured event description that
 5 specialist AI agents will consume.
 
@@ -570,7 +570,7 @@ OUTPUT: Respond ONLY with valid JSON matching the provided schema. No markdown, 
 **Model:** MiniMax-M2.5 via `minimax("MiniMax-M2.5")` | **Temperature:** 0.4 | **Max tokens:** 2,000
 
 ```text
-You are the Geopolitics Specialist for CryoNexus. You analyze how catastrophic scenarios
+You are the Geopolitics Specialist for Vantage. You analyze how catastrophic scenarios
 reshape international relations, alliances, and conflict dynamics.
 
 ANALYTICAL FRAMEWORK:
@@ -609,7 +609,7 @@ Respond ONLY with valid JSON matching the provided schema. No markdown wrapping.
 **Model:** MiniMax-M2.5 via `minimax("MiniMax-M2.5")` | **Temperature:** 0.4 | **Max tokens:** 2,000
 
 ```text
-You are the Economy Specialist for CryoNexus. You analyze macroeconomic consequences,
+You are the Economy Specialist for Vantage. You analyze macroeconomic consequences,
 trade disruptions, and financial market impacts of catastrophic scenarios.
 
 ANALYTICAL FRAMEWORK:
@@ -647,7 +647,7 @@ Respond ONLY with valid JSON matching the provided schema. No markdown wrapping.
 **Model:** MiniMax-M2.5 via `minimax("MiniMax-M2.5")` | **Temperature:** 0.4 | **Max tokens:** 2,000
 
 ```text
-You are the Food Supply Specialist for CryoNexus. You analyze impacts on agricultural
+You are the Food Supply Specialist for Vantage. You analyze impacts on agricultural
 systems, food logistics, food security, and water access.
 
 ANALYTICAL FRAMEWORK:
@@ -688,7 +688,7 @@ Respond ONLY with valid JSON matching the provided schema. No markdown wrapping.
 **Model:** MiniMax-M2.5 via `minimax("MiniMax-M2.5")` | **Temperature:** 0.4 | **Max tokens:** 2,000
 
 ```text
-You are the Infrastructure Specialist for CryoNexus. You analyze impacts on power grids,
+You are the Infrastructure Specialist for Vantage. You analyze impacts on power grids,
 telecommunications, transportation, water systems, and digital infrastructure.
 
 ANALYTICAL FRAMEWORK:
@@ -729,7 +729,7 @@ Respond ONLY with valid JSON matching the provided schema. No markdown wrapping.
 **Model:** MiniMax-M2.5 via `minimax("MiniMax-M2.5")` | **Temperature:** 0.4 | **Max tokens:** 2,000
 
 ```text
-You are the Civilian Impact Specialist for CryoNexus. You analyze humanitarian
+You are the Civilian Impact Specialist for Vantage. You analyze humanitarian
 consequences: displacement, public health, social stability, and vulnerable populations.
 
 ANALYTICAL FRAMEWORK:
@@ -771,7 +771,7 @@ Respond ONLY with valid JSON matching the provided schema. No markdown wrapping.
 **Model:** GPT-5.2 via `openai("gpt-5.2")` | **Temperature:** 0.3 | **Max tokens:** 2,000
 
 ```text
-You are the Synthesis Agent for CryoNexus. You receive structured analyses from 5
+You are the Synthesis Agent for Vantage. You receive structured analyses from 5
 specialist agents (Geopolitics, Economy, Food Supply, Infrastructure, Civilian Impact)
 and produce a unified cross-domain assessment.
 
@@ -822,7 +822,7 @@ Respond ONLY with valid JSON matching the provided schema. No markdown wrapping.
 
 ```json
 {
-  "name": "cryonexus",
+  "name": "vantage",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -1075,7 +1075,7 @@ All layers set `pickable: true`. On pick, the `RegionDetail` sidebar component p
 
 ### Top Bar
 
-- Left: "CryoNexus" logo text (Inter Bold, 20px, white)
+- Left: "Vantage" logo text (Inter Bold, 20px, white)
 - Center: Compound risk score badge — circular, animated fill, color matches severity (green < 30, yellow 30–60, orange 60–80, red > 80). Shows "—" before analysis.
 - Right: Time horizon badge ("Immediate" / "Weeks" / "Months" / "Years") pulled from orchestrator output. Hidden before analysis.
 
@@ -1261,7 +1261,7 @@ When serving from cache, introduce 100ms delays between SSE events to simulate r
 > **Presenter:** one person speaks. Second person operates the laptop. Third person stands by as backup.
 
 **`[0:00]`** *[App loads. Map fills screen, dark theme, globe centered on Middle East. No UI clutter — just the map and a minimal sidebar.]*
-"Every day, world leaders make decisions based on fragmented intelligence. A canal blockage here, a heat wave there — they're analyzed in silos. Nobody sees the full picture. CryoNexus breaks those silos."
+"Every day, world leaders make decisions based on fragmented intelligence. A canal blockage here, a heat wave there — they're analyzed in silos. Nobody sees the full picture. Vantage breaks those silos."
 
 **`[0:15]`** *[Click the golden-path button: "Suez Canal blocked during extreme heat wave in South Asia"]*
 "Watch. We just triggered a multi-domain catastrophic scenario. In real time, five specialized AI agents are analyzing this crisis simultaneously."
@@ -1294,7 +1294,7 @@ When serving from cache, introduce 100ms delays between SSE events to simulate r
 "Under the hood: a GPT-5.2 orchestrator parses the scenario and fans out to five MiniMax-M2.5 specialist agents in parallel. Each produces Zod-validated structured JSON that feeds directly into deck.gl map layers via Server-Sent Events. Full TypeScript. Single Vercel deployment. No database. The entire analysis pipeline completes in under 30 seconds."
 
 **`[2:55]`** *[Return to the Suez scenario result. Map shows the full global view with all layers active.]*
-"CryoNexus turns unstructured scenario data into structured, actionable geospatial intelligence. Thank you."
+"Vantage turns unstructured scenario data into structured, actionable geospatial intelligence. Thank you."
 
 **`[3:00]`** *[End. Stay on the app — judges may want to interact.]*
 
@@ -1395,4 +1395,4 @@ Hmm — that saturates. With the Suez scenario, 4 of 5 domains score 7+, so the 
 
 ---
 
-*Generated for the CryoNexus hackathon team. Last updated: 2026-02-14.*
+*Generated for the Vantage hackathon team. Last updated: 2026-02-14.*

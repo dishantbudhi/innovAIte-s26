@@ -297,7 +297,7 @@ async function processDisplacement() {
 // ── Main ──────────────────────────────────────────────────────────────
 
 async function main() {
-  console.log("=== CryoNexus Data Preload ===\n");
+  console.log("=== Vantage Data Preload ===\n");
 
   // Local file processing (no network needed)
   processCountries();

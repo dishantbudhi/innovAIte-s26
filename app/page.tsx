@@ -274,7 +274,7 @@ export default function Home() {
       <header className="h-14 flex-shrink-0 flex items-center justify-between px-6 border-b border-border glass-top">
         <div className="flex items-center gap-3">
           <h1 className="text-xl font-bold text-foreground tracking-tight">
-            CryoNexus
+            Vantage
           </h1>
         </div>
 

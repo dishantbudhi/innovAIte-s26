@@ -99,6 +99,16 @@ export async function POST(req: NextRequest) {
       };
 
       try {
+        // Check for fallback scenario at the start
+        const fallbackName = matchFallbackScenario(scenario);
+        if (fallbackName) {
+          console.log(`Using fallback data for scenario: ${fallbackName}`);
+          const fallbackData = await loadFallbackData(fallbackName);
+          await replayFallback(fallbackData, send);
+          return;
+        }
+
+        // Run live pipeline for non-fallback scenarios
         send("status", { status: "orchestrating", message: "Analyzing scenario..." });
 
         const orchestratorOutput = await runOrchestrator(scenario);

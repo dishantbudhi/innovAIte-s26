@@ -5,7 +5,6 @@ import dynamic from "next/dynamic";
 import { useAnalysis } from "@/hooks/use-analysis";
 import ScenarioInput from "@/components/sidebar/ScenarioInput";
 import AgentPanelGroup from "@/components/sidebar/AgentPanelGroup";
-import SynthesisPanel from "@/components/sidebar/SynthesisPanel";
 import RegionDetail from "@/components/sidebar/RegionDetail";
 import MapControls from "@/components/map/MapControls";
 import MapLegend from "@/components/map/MapLegend";
@@ -337,26 +336,16 @@ export default function Home() {
 
             {/* Analysis View (agents + synthesis) */}
             {sidebarView === "analysis" && analysis.status !== "idle" && (
-              <>
-                <div className="flex-1 min-h-0 overflow-hidden animate-fade-in">
-                  <AgentPanelGroup
-                    agentTexts={analysis.agentTexts}
-                    agentStatuses={analysis.agentStatuses}
-                    synthesisText={analysis.synthesisText}
-                    synthesisStatus={analysis.synthesisStatus}
-                    activeTab={activeTab}
-                    onTabChange={handleTabChange}
-                  />
-                </div>
-
-                <div className="flex-shrink-0 max-h-[280px] overflow-y-auto border-t border-border">
-                  <SynthesisPanel
-                    synthesisText={analysis.synthesisText}
-                    compoundRiskScore={analysis.compoundRiskScore}
-                    isComplete={analysis.status === "complete"}
-                  />
-                </div>
-              </>
+              <div className="flex-1 min-h-0 overflow-hidden animate-fade-in">
+                <AgentPanelGroup
+                  agentTexts={analysis.agentTexts}
+                  agentStatuses={analysis.agentStatuses}
+                  synthesisText={analysis.synthesisText}
+                  synthesisStatus={analysis.synthesisStatus}
+                  activeTab={activeTab}
+                  onTabChange={handleTabChange}
+                />
+              </div>
             )}
 
             {/* Idle State */}

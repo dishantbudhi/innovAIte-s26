@@ -20,6 +20,7 @@ const AGENTS: AgentName[] = [
   "food_supply",
   "infrastructure",
   "civilian_impact",
+  "synthesis",
 ];
 
 function createInitialAgentTexts(): Record<AgentName, string> {
@@ -115,6 +116,8 @@ export function useAnalysis(): UseAnalysisReturn {
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = "";
+      let currentEvent = "";
+      let currentData = "";
 
       while (true) {
         const { done, value } = await reader.read();
@@ -123,9 +126,6 @@ export function useAnalysis(): UseAnalysisReturn {
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split("\n");
         buffer = lines.pop() ?? "";
-
-        let currentEvent = "";
-        let currentData = "";
 
         for (const line of lines) {
           if (line.startsWith("event: ")) {
@@ -162,8 +162,10 @@ export function useAnalysis(): UseAnalysisReturn {
 
                 case "agent_complete": {
                   const { agent, structured } = data;
-                  // narrative is not currently used but reserved for future use
-                  if (agent && AGENTS.includes(agent)) {
+                  if (agent === "synthesis") {
+                    setSynthesisOutput(structured as SynthesisOutput);
+                    setSynthesisStatus("complete");
+                  } else if (agent && AGENTS.includes(agent)) {
                     const typedAgent = agent as AgentName;
                     setAgentResults((prev) => ({
                       ...prev,
@@ -206,9 +208,11 @@ export function useAnalysis(): UseAnalysisReturn {
                       [typedAgent]: "error",
                     }));
                   }
-                  setStatus("error");
-                  setPipelineStatus("error");
-                  setPipelineMessage(errMsg);
+                  if (!agent) {
+                    setStatus("error");
+                    setPipelineStatus("error");
+                    setPipelineMessage(errMsg);
+                  }
                   break;
                 }
 

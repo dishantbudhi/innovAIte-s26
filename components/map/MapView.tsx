@@ -52,6 +52,19 @@ export default function MapView({
   // Guard: defer DeckGL render until container has non-zero dimensions.
   const [ready, setReady] = useState(false);
 
+  // Suppress luma.gl initialization race condition error (upstream bug in v9.2.6).
+  // WebGLDevice registers a ResizeObserver before setting this.limits, causing a
+  // TypeError when the observer fires immediately on an already-visible canvas.
+  useEffect(() => {
+    const handler = (event: ErrorEvent) => {
+      if (event.message?.includes("maxTextureDimension2D")) {
+        event.preventDefault();
+      }
+    };
+    window.addEventListener("error", handler);
+    return () => window.removeEventListener("error", handler);
+  }, []);
+
   // Wait for the container to have layout dimensions before mounting DeckGL
   useEffect(() => {
     const el = containerRef.current;
@@ -191,10 +204,6 @@ export default function MapView({
           onViewStateChange={({ viewState: newViewState }) =>
             onViewStateChange(newViewState as ViewState)
           }
-          onError={(error: Error) => {
-            if (error.message?.includes("maxTextureDimension2D")) return;
-            console.error("DeckGL error:", error);
-          }}
           getTooltip={({ object }: { object?: any }) =>
             object?.properties?.NAME || object?.properties?.ISO_A3 || null
           }

@@ -1,147 +1,209 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect } from "vitest";
 import fs from "fs";
 import path from "path";
-import {
-    fetchCountries,
-    fetchEconomicIndicators,
-    parseINFORMRiskIndex,
-    fetchDisplacement,
-    parseWRIPowerPlants,
-    preload
-} from "../scripts/preload-data";
 
-// Mock global fetch
-const fetchMock = vi.fn();
-global.fetch = fetchMock;
+const DATA_DIR = path.resolve(__dirname, "../lib/data");
+const PUBLIC_DIR = path.resolve(__dirname, "../public");
 
-// Spy on fs.writeFileSync to avoid writing real files during tests
-const writeFileSyncSpy = vi.spyOn(fs, "writeFileSync").mockImplementation(() => { });
-// Spy on console.log
-const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => { });
-const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => { });
+describe("Generated Data Files — Validation", () => {
+  // ── countries.json ──────────────────────────────────────────────────
 
-describe("Data Preload Pipeline", () => {
-    const DATA_DIR = path.resolve(__dirname, "../lib/data");
+  describe("countries.json", () => {
+    const filePath = path.join(DATA_DIR, "countries.json");
 
-    beforeEach(() => {
-        vi.clearAllMocks();
+    it("exists and is non-empty", () => {
+      expect(fs.existsSync(filePath)).toBe(true);
+      const stat = fs.statSync(filePath);
+      expect(stat.size).toBeGreaterThan(1000);
     });
 
-    // 1.
-    describe("fetchCountries", () => {
-        it("should fetch GeoJSON and write to countries.json", async () => {
-            const mockGeoJSON = { type: "FeatureCollection", features: [{ properties: { ISO_A3: "USA" } }] };
-            fetchMock.mockResolvedValueOnce({
-                ok: true,
-                json: async () => mockGeoJSON,
-            });
-
-            await fetchCountries();
-
-            expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining("natural-earth-vector"));
-            expect(writeFileSyncSpy).toHaveBeenCalledWith(
-                expect.stringContaining("countries.json"),
-                JSON.stringify(mockGeoJSON)
-            );
-        });
+    it("is valid GeoJSON FeatureCollection", () => {
+      const data = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+      expect(data.type).toBe("FeatureCollection");
+      expect(Array.isArray(data.features)).toBe(true);
+      expect(data.features.length).toBeGreaterThan(100);
     });
 
-    // 2.
-    describe("fetchEconomicIndicators", () => {
-        it("should fetch indicators and aggregate by country", async () => {
-            fetchMock.mockImplementation((url) => {
-                if (url.includes("NY.GDP.MKTP.CD")) {
-                    return Promise.resolve({
-                        ok: true,
-                        json: async () => [null, [{ country: { id: "USA" }, value: 1000 }]],
-                    });
-                }
-                return Promise.resolve({
-                    ok: true,
-                    json: async () => [null, []],
-                });
-            });
-
-            await fetchEconomicIndicators();
-            expect(fetchMock).toHaveBeenCalledTimes(6);
-            expect(writeFileSyncSpy).toHaveBeenCalledWith(
-                expect.stringContaining("economic-indicators.json"),
-                expect.any(String)
-            );
-        });
+    it("every feature has ISO_A3 and NAME properties", () => {
+      const data = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+      for (const feature of data.features) {
+        expect(feature.type).toBe("Feature");
+        expect(feature.properties).toBeDefined();
+        expect(typeof feature.properties.ISO_A3).toBe("string");
+        expect(typeof feature.properties.NAME).toBe("string");
+      }
     });
 
-    // 3.
-    describe("parseINFORMRiskIndex", () => {
-        it("should parse the real Excel file and extract risk scores", async () => {
-            await parseINFORMRiskIndex();
-            expect(writeFileSyncSpy).toHaveBeenCalledWith(
-                expect.stringContaining("risk-index.json"),
-                expect.any(String)
-            );
-        });
+    it("every feature has geometry", () => {
+      const data = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+      for (const feature of data.features) {
+        expect(feature.geometry).toBeDefined();
+        expect(feature.geometry.type).toBeDefined();
+      }
     });
 
-    // 4.
-    describe("fetchDisplacement", () => {
-        it("should fetch UNHCR data, paginate, and write map to displacement.json", async () => {
-            const mockDataItem = {
-                country_iso: "AFG", // Old property? No, check API response.
-                // API returns: { year: 2023, coo_iso: "AFG", refugees: 500, ... }
-                coo_iso: "AFG",
-                refugees: 500,
-                asylum_seekers: 100
-            };
+    it("only contains trimmed properties (no bloat)", () => {
+      const EXPECTED_PROPS = [
+        "ISO_A3",
+        "NAME",
+        "ADM0_A3",
+        "POP_EST",
+        "GDP_MD",
+        "CONTINENT",
+        "REGION_UN",
+        "SUBREGION",
+        "ISO_A2",
+      ];
+      const data = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+      const firstFeatureKeys = Object.keys(data.features[0].properties);
+      for (const key of firstFeatureKeys) {
+        expect(EXPECTED_PROPS).toContain(key);
+      }
+    });
+  });
 
-            const mockResponse = {
-                items: [mockDataItem],
-                maxPages: 1
-            };
+  // ── public/countries.geojson ────────────────────────────────────────
 
-            fetchMock.mockResolvedValueOnce({
-                ok: true,
-                json: async () => mockResponse,
-            });
+  describe("public/countries.geojson", () => {
+    it("exists and matches lib/data/countries.json", () => {
+      const libPath = path.join(DATA_DIR, "countries.json");
+      const pubPath = path.join(PUBLIC_DIR, "countries.geojson");
+      expect(fs.existsSync(pubPath)).toBe(true);
 
-            await fetchDisplacement();
+      const libData = fs.readFileSync(libPath, "utf-8");
+      const pubData = fs.readFileSync(pubPath, "utf-8");
+      expect(pubData).toBe(libData);
+    });
+  });
 
-            expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining("api.unhcr.org"));
-            expect(writeFileSyncSpy).toHaveBeenCalledWith(
-                expect.stringContaining("displacement.json"),
-                expect.any(String)
-            );
+  // ── risk-index.json ─────────────────────────────────────────────────
 
-            const writtenData = JSON.parse(writeFileSyncSpy.mock.calls[0][1] as string);
-            expect(writtenData.AFG).toBeDefined();
-            expect(writtenData.AFG.refugees).toBe(500);
-        });
+  describe("risk-index.json", () => {
+    const filePath = path.join(DATA_DIR, "risk-index.json");
+
+    it("exists and is non-empty", () => {
+      expect(fs.existsSync(filePath)).toBe(true);
     });
 
-    // 5.
-    describe("parseWRIPowerPlants", () => {
-        it("should handle missing WRI file gracefully", async () => {
-            await parseWRIPowerPlants();
-        });
+    it("has correct structure keyed by ISO3", () => {
+      const data = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+      expect(typeof data).toBe("object");
+      expect(Object.keys(data).length).toBeGreaterThan(100);
+
+      // All keys should be 3-char ISO3 codes
+      for (const key of Object.keys(data)) {
+        expect(key).toHaveLength(3);
+      }
     });
 
-    // 6.
-    describe("preload function", () => {
-        it("should run all functions in sequence", async () => {
-            fetchMock.mockResolvedValue({
-                ok: true,
-                json: async () => [null, []] // Default logic
-            });
-            // Need specific override for displacement which expects {items:[], maxPages:1}
-            fetchMock.mockImplementation((url) => {
-                if (url.includes("unhcr")) return Promise.resolve({ ok: true, json: async () => ({ items: [], maxPages: 1 }) });
-                if (url.includes("worldbank")) return Promise.resolve({ ok: true, json: async () => [null, []] });
-                return Promise.resolve({ ok: true, json: async () => ({}) });
-            });
+    it("entries have required numeric fields", () => {
+      const data = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+      const sampleKeys = ["AFG", "USA", "EGY", "IND"];
 
-            await preload();
-
-            expect(fetchMock).toHaveBeenCalled();
-            expect(consoleLogSpy).toHaveBeenCalledWith("All data pre-loaded successfully.");
-        });
+      for (const iso3 of sampleKeys) {
+        if (!data[iso3]) continue;
+        const entry = data[iso3];
+        expect(typeof entry.risk_score).toBe("number");
+        expect(typeof entry.hazard_exposure).toBe("number");
+        expect(typeof entry.vulnerability).toBe("number");
+        expect(typeof entry.lack_of_coping_capacity).toBe("number");
+      }
     });
+
+    it("known high-risk country has risk_score > 5", () => {
+      const data = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+      // Afghanistan is consistently high-risk
+      if (data["AFG"]) {
+        expect(data["AFG"].risk_score).toBeGreaterThan(5);
+      }
+    });
+  });
+
+  // ── economic-indicators.json ────────────────────────────────────────
+
+  describe("economic-indicators.json", () => {
+    const filePath = path.join(DATA_DIR, "economic-indicators.json");
+
+    it("exists and is non-empty", () => {
+      expect(fs.existsSync(filePath)).toBe(true);
+    });
+
+    it("is keyed by ISO3 codes", () => {
+      const data = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+      expect(typeof data).toBe("object");
+      expect(Object.keys(data).length).toBeGreaterThan(100);
+    });
+
+    it("contains expected World Bank indicator codes", () => {
+      const data = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+      // USA should have GDP data
+      const usa = data["USA"];
+      if (usa) {
+        expect(usa["NY.GDP.MKTP.CD"]).toBeDefined();
+        expect(typeof usa["NY.GDP.MKTP.CD"]).toBe("number");
+      }
+    });
+  });
+
+  // ── displacement.json ───────────────────────────────────────────────
+
+  describe("displacement.json", () => {
+    const filePath = path.join(DATA_DIR, "displacement.json");
+
+    it("exists and is non-empty", () => {
+      expect(fs.existsSync(filePath)).toBe(true);
+    });
+
+    it("is keyed by ISO3 codes with correct fields", () => {
+      const data = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+      expect(typeof data).toBe("object");
+      expect(Object.keys(data).length).toBeGreaterThan(50);
+
+      // Check first entry structure
+      const firstKey = Object.keys(data)[0];
+      const entry = data[firstKey];
+      expect(typeof entry.refugees).toBe("number");
+      expect(typeof entry.asylum_seekers).toBe("number");
+      expect(typeof entry.idps).toBe("number");
+      expect(typeof entry.stateless).toBe("number");
+    });
+  });
+
+  // ── power-plants.json ───────────────────────────────────────────────
+
+  describe("power-plants.json", () => {
+    const filePath = path.join(DATA_DIR, "power-plants.json");
+
+    it("exists and is non-empty", () => {
+      expect(fs.existsSync(filePath)).toBe(true);
+    });
+
+    it("is an array with thousands of plants", () => {
+      const data = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+      expect(Array.isArray(data)).toBe(true);
+      expect(data.length).toBeGreaterThan(10000);
+    });
+
+    it("entries have required fields", () => {
+      const data = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+      const sample = data[0];
+      expect(typeof sample.latitude).toBe("number");
+      expect(typeof sample.longitude).toBe("number");
+      expect(typeof sample.capacity_mw).toBe("number");
+      expect(typeof sample.primary_fuel).toBe("string");
+      expect(typeof sample.name).toBe("string");
+    });
+
+    it("coordinates are in valid ranges", () => {
+      const data = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+      // Check first 100 entries
+      for (const plant of data.slice(0, 100)) {
+        expect(plant.latitude).toBeGreaterThanOrEqual(-90);
+        expect(plant.latitude).toBeLessThanOrEqual(90);
+        expect(plant.longitude).toBeGreaterThanOrEqual(-180);
+        expect(plant.longitude).toBeLessThanOrEqual(180);
+      }
+    });
+  });
 });
+

@@ -30,6 +30,9 @@ cp .env.example .env.local
 | `OPENAI_API_KEY` | Yes | OpenAI API key for orchestrator and synthesis agents. Get from [platform.openai.com](https://platform.openai.com/api-keys) |
 | `MINIMAX_API_KEY` | Yes | MiniMax API key for specialist agents. Get from [platform.minimaxi.com](https://platform.minimaxi.com/) |
 | `NEXT_PUBLIC_MAPTILER_KEY` | Yes | MapTiler API key for map tiles. Get from [cloud.maptiler.com](https://cloud.maptiler.com/account/keys/) |
+| `CDS_UID` | No | Copernicus Climate Data Store username. Get from [cds.climate.copernicus.eu](https://cds.climate.copernicus.eu/user) |
+| `CDS_API_KEY` | No | Copernicus Climate Data Store API key. Get from [cds.climate.copernicus.eu/api-how-to](https://cds.climate.copernicus.eu/api-how-to) |
+| `NASA_API_KEY` | No | NASA API key for satellite imagery and Earth observation data. Get from [api.nasa.gov](https://api.nasa.gov/) |
 
 ### 3. Secure your MapTiler key (recommended)
 
@@ -48,6 +51,9 @@ For CI pipelines and production deployments, set the environment variables as se
 vercel env add OPENAI_API_KEY
 vercel env add MINIMAX_API_KEY
 vercel env add NEXT_PUBLIC_MAPTILER_KEY
+vercel env add CDS_UID
+vercel env add CDS_API_KEY
+vercel env add NASA_API_KEY
 
 # Or use -e flag with deployment
 vercel deploy --env OPENAI_API_KEY=$OPENAI_API_KEY ...
